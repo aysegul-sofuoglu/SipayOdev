@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using WebApi.DBOperations;
 
 namespace WebApi.Controllers{
 
@@ -7,33 +8,31 @@ namespace WebApi.Controllers{
 
     public class ProductController: ControllerBase{
 
-        private static List<Product> ProductList = new List<Product>()
+        private readonly ProductsDbContext _context;
+
+        public ProductController(ProductsDbContext context)
         {
-            new Product { Id = 1, Name = "Laptop", Price = 1500, Description = "Powerful laptop for professional use", Category = "Electronics" },
-            new Product { Id = 2, Name = "Mouse", Price = 20, Description = "Wireless mouse for comfortable navigation", Category = "Electronics" },
-            new Product { Id = 3, Name = "Telephone", Price = 200, Description = "Smartphone with advanced features", Category = "Electronics" },
-            new Product { Id = 4, Name = "Watch", Price = 100, Description = "Stylish wristwatch for any occasion", Category = "Fashion" },
-            new Product { Id = 5, Name = "Microphone", Price = 80, Description = "High-quality microphone for audio recording", Category = "Electronics" },
-            new Product { Id = 6, Name = "Hair Dryer", Price = 40, Description = "Fast and efficient hair drying", Category = "Home Appliances" },
-            new Product { Id = 7, Name = "Charger", Price = 15, Description = "Universal charger for various devices", Category = "Electronics" },
-            new Product { Id = 8, Name = "Backpack", Price = 50, Description = "Spacious backpack for daily use", Category = "Fashion" },
-            new Product { Id = 9, Name = "Thermos", Price = 25, Description = "Insulated thermos for keeping beverages hot or cold", Category = "Home Appliances" },
-            new Product { Id = 10, Name = "Printer", Price = 120, Description = "High-resolution printer for professional printing", Category = "Electronics" }
-        };
+            _context=context;
+        }
+
 
 
         [HttpGet]
-        public List<Product> GetProducts()
+        public IActionResult GetProducts()
         {
-            var productList = ProductList.OrderBy(x=>x.Id).ToList<Product>();
-            return productList;
+            var productList = _context.Products.OrderBy(x=>x.Id).ToList<Product>();
+            return Ok(productList);
         }
 
         [HttpGet("{id}")]
-        public Product GetById(int id)
+        public IActionResult GetById(int id)
         {
-            var product = ProductList.Where(product=>product.Id==id).SingleOrDefault();
-            return product;
+            var product = _context.Products.FirstOrDefault(p => p.Id == id);
+            if (product == null)
+            {
+                return NotFound();
+            }
+            return Ok(product);
         }
 
         // [HttpGet]
@@ -47,32 +46,66 @@ namespace WebApi.Controllers{
         [HttpPost]
         public IActionResult AddProduct([FromBody] Product newProduct)
         {
-            var product = ProductList.SingleOrDefault(x=>x.Name==newProduct.Name);
+            var product = _context.Products.SingleOrDefault(x=>x.Name==newProduct.Name);
 
             if(product is not null){
-                return BadRequest();
+                return Conflict("A product with the same name already exists.");
 
             }
 
-            ProductList.Add(newProduct);
-            return Ok();
+            _context.Products.Add(newProduct);
+            _context.SaveChanges();
+            return CreatedAtAction(nameof(GetById), new { id = newProduct.Id }, newProduct);
         }
 
         [HttpPut("{id}")]
         public IActionResult UpdateProduct(int id, [FromBody] Product updatedProduct)
         {
-            var product = ProductList.SingleOrDefault(x=>x.Id==id);
+            var product = _context.Products.SingleOrDefault(x=>x.Id==id);
 
             if(product is null){
-                return BadRequest();
+                return NotFound();
             }
 
-            product.Name = updatedProduct.Name != default ? updatedProduct.Name : product.Name;
+            product.Name = updatedProduct.Name != "string" ? updatedProduct.Name : product.Name;
             product.Price = updatedProduct.Price != default ? updatedProduct.Price : product.Price;
-            product.Description = updatedProduct.Description != default ? updatedProduct.Description : product.Description;
-            product.Category = updatedProduct.Category != default ? updatedProduct.Category : product.Category;
+            product.Description = updatedProduct.Description != "string" ? updatedProduct.Description : product.Description;
+            product.Category = updatedProduct.Category != "string" ? updatedProduct.Category : product.Category;
 
+            _context.SaveChanges();
             return Ok();
+        }
+
+        [HttpDelete("{id}")]
+        public IActionResult DeleteProduct(int id)
+        {
+            var product = _context.Products.SingleOrDefault(x=>x.Id==id);
+            if(product is null){
+                return NotFound();
+            }
+
+            _context.Products.Remove(product);
+            _context.SaveChanges();
+            return Ok();
+        }
+
+
+        [HttpPatch("{id}")]
+        public IActionResult PartialUpdateProduct(int id, [FromBody] Product updatedProduct)
+        {
+            var product = _context.Products.FirstOrDefault(x=>x.Id==id);
+            if(product is null){
+                return NotFound();
+            }
+            
+           product.Name = updatedProduct.Name != "string" ? updatedProduct.Name : product.Name;
+            product.Price = updatedProduct.Price != default ? updatedProduct.Price : product.Price;
+            product.Description = updatedProduct.Description != "string" ? updatedProduct.Description : product.Description;
+            product.Category = updatedProduct.Category != "string" ? updatedProduct.Category : product.Category;
+
+            _context.SaveChanges();
+            return Ok();
+
         }
 
     }
