@@ -1,5 +1,14 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.DBOperations;
+using WebApi.ProductOperations.CreateProduct;
+using WebApi.ProductOperations.DeleteProduct;
+using WebApi.ProductOperations.GetProductDetail;
+using WebApi.ProductOperations.GetProducts;
+using WebApi.ProductOperations.UpdateProduct;
+using static WebApi.ProductOperations.CreateProduct.CreateProductCommand;
+using static WebApi.ProductOperations.GetProductDetail.GetProductDetailQuery;
+using static WebApi.ProductOperations.UpdateProduct.UpdateProductCommand;
 
 namespace WebApi.Controllers{
 
@@ -9,10 +18,12 @@ namespace WebApi.Controllers{
     public class ProductController: ControllerBase{
 
         private readonly ProductsDbContext _context;
+        private readonly IMapper _mapper;
 
-        public ProductController(ProductsDbContext context)
+        public ProductController(ProductsDbContext context, IMapper mapper)
         {
-            _context=context;
+            _context = context;
+            _mapper = mapper;
         }
 
 
@@ -20,19 +31,28 @@ namespace WebApi.Controllers{
         [HttpGet]
         public IActionResult GetProducts()
         {
-            var productList = _context.Products.OrderBy(x=>x.Id).ToList<Product>();
-            return Ok(productList);
+           GetProductsQuery query =new GetProductsQuery(_context, _mapper);
+           var result = query.Handle();
+           return Ok(result);
         }
+
 
         [HttpGet("{id}")]
         public IActionResult GetById(int id)
         {
-            var product = _context.Products.FirstOrDefault(p => p.Id == id);
-            if (product == null)
+            ProductDetailViewModel result;
+            try
             {
-                return NotFound();
+                GetProductDetailQuery query = new GetProductDetailQuery(_context, _mapper);
+                query.ProductId = id;
+                result = query.Handle();
             }
-            return Ok(product);
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            
+            return Ok(result);
         }
 
         // [HttpGet]
@@ -44,69 +64,76 @@ namespace WebApi.Controllers{
 
 
         [HttpPost]
-        public IActionResult AddProduct([FromBody] Product newProduct)
+        public IActionResult AddProduct([FromBody] CreateProductModel newProduct)
         {
-            var product = _context.Products.SingleOrDefault(x=>x.Name==newProduct.Name);
-
-            if(product is not null){
-                return Conflict("A product with the same name already exists.");
-
+            CreateProductCommand command = new CreateProductCommand(_context, _mapper);
+            try
+            {
+                command.Model = newProduct;
+                command.Handle();
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
 
-            _context.Products.Add(newProduct);
-            _context.SaveChanges();
-            return CreatedAtAction(nameof(GetById), new { id = newProduct.Id }, newProduct);
+            return Ok();
         }
 
         [HttpPut("{id}")]
-        public IActionResult UpdateProduct(int id, [FromBody] Product updatedProduct)
+        public IActionResult UpdateProduct(int id, [FromBody] UpdateProductModel updatedProduct)
         {
-            var product = _context.Products.SingleOrDefault(x=>x.Id==id);
-
-            if(product is null){
-                return NotFound();
+            try{
+                UpdateProductCommand command = new UpdateProductCommand(_context);
+                command.ProductId = id;
+                command.Model = updatedProduct;
+                command.Handle();
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
 
-            product.Name = updatedProduct.Name != "string" ? updatedProduct.Name : product.Name;
-            product.Price = updatedProduct.Price != default ? updatedProduct.Price : product.Price;
-            product.Description = updatedProduct.Description != "string" ? updatedProduct.Description : product.Description;
-            product.Category = updatedProduct.Category != "string" ? updatedProduct.Category : product.Category;
-
-            _context.SaveChanges();
             return Ok();
+            
+            
         }
 
         [HttpDelete("{id}")]
         public IActionResult DeleteProduct(int id)
         {
-            var product = _context.Products.SingleOrDefault(x=>x.Id==id);
-            if(product is null){
-                return NotFound();
+            try
+            {
+                DeleteProductCommand command = new DeleteProductCommand(_context);
+                command.ProductId = id;
+                command.Handle();
             }
-
-            _context.Products.Remove(product);
-            _context.SaveChanges();
-            return Ok();
-        }
-
-
-        [HttpPatch("{id}")]
-        public IActionResult PartialUpdateProduct(int id, [FromBody] Product updatedProduct)
-        {
-            var product = _context.Products.FirstOrDefault(x=>x.Id==id);
-            if(product is null){
-                return NotFound();
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
             
-           product.Name = updatedProduct.Name != "string" ? updatedProduct.Name : product.Name;
-            product.Price = updatedProduct.Price != default ? updatedProduct.Price : product.Price;
-            product.Description = updatedProduct.Description != "string" ? updatedProduct.Description : product.Description;
-            product.Category = updatedProduct.Category != "string" ? updatedProduct.Category : product.Category;
-
-            _context.SaveChanges();
             return Ok();
-
         }
+
+
+        // [HttpPatch("{id}")]
+        // public IActionResult PartialUpdateProduct(int id, [FromBody] Product updatedProduct)
+        // {
+        //     var product = _context.Products.FirstOrDefault(x=>x.Id==id);
+        //     if(product is null){
+        //         return NotFound();
+        //     }
+            
+        //    product.Name = updatedProduct.Name != "string" ? updatedProduct.Name : product.Name;
+        //     product.Price = updatedProduct.Price != default ? updatedProduct.Price : product.Price;
+        //     product.Description = updatedProduct.Description != "string" ? updatedProduct.Description : product.Description;
+        //     product.CategoryId = updatedProduct.CategoryId != default ? updatedProduct.CategoryId : product.CategoryId;
+
+        //     _context.SaveChanges();
+        //     return Ok();
+
+        // }
 
     }
 }
