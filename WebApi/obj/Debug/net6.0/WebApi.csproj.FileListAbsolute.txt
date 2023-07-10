@@ -66,3 +66,4 @@ C:\Users\aysegul\Desktop\GitHub\SipayOdev\WebApi\bin\Debug\net6.0\Microsoft.Exte
 C:\Users\aysegul\Desktop\GitHub\SipayOdev\WebApi\bin\Debug\net6.0\Microsoft.Extensions.Primitives.dll
 C:\Users\aysegul\Desktop\GitHub\SipayOdev\WebApi\bin\Debug\net6.0\AutoMapper.dll
 C:\Users\aysegul\Desktop\GitHub\SipayOdev\WebApi\bin\Debug\net6.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
+C:\Users\aysegul\Desktop\GitHub\SipayOdev\WebApi\bin\Debug\net6.0\Newtonsoft.Json.dll

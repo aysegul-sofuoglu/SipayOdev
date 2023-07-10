@@ -43,19 +43,14 @@ namespace WebApi.Controllers{
         public IActionResult GetById(int id)
         {
             ProductDetailViewModel result;
-            try
-            {
+           
                 GetProductDetailQuery query = new GetProductDetailQuery(_context, _mapper);
                 query.ProductId = id;
                 GetProductDetailQueryValidator validator = new GetProductDetailQueryValidator();
                 validator.ValidateAndThrow(query);
 
                 result = query.Handle();
-            }
-            catch(Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            
             
             return Ok(result);
         }
@@ -72,8 +67,7 @@ namespace WebApi.Controllers{
         public IActionResult AddProduct([FromBody] CreateProductModel newProduct)
         {
             CreateProductCommand command = new CreateProductCommand(_context, _mapper);
-            try
-            {
+            
                 command.Model = newProduct;
                 CreateProductCommandValidator validator = new CreateProductCommandValidator();
                 validator.ValidateAndThrow(command);
@@ -84,14 +78,10 @@ namespace WebApi.Controllers{
                 //     Console.WriteLine("Property " + item.PropertyName + " - Error Message: " + item.ErrorMessage);
                 
                 // else
-                //         command.Handle();
+                // command.Handle();
                 
                 
-            }
-            catch(Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            
 
             return Ok();
         }
@@ -99,7 +89,7 @@ namespace WebApi.Controllers{
         [HttpPut("{id}")]
         public IActionResult UpdateProduct(int id, [FromBody] UpdateProductModel updatedProduct)
         {
-            try{
+            
                 UpdateProductCommand command = new UpdateProductCommand(_context);
                 command.ProductId = id;
                 command.Model = updatedProduct;
@@ -108,13 +98,8 @@ namespace WebApi.Controllers{
                 validator.ValidateAndThrow(command);
 
                 command.Handle();
-            }
-            catch(Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-
-            return Ok();
+           
+                return Ok();
             
             
         }
@@ -122,18 +107,12 @@ namespace WebApi.Controllers{
         [HttpDelete("{id}")]
         public IActionResult DeleteProduct(int id)
         {
-            try
-            {
                 DeleteProductCommand command = new DeleteProductCommand(_context);
                 command.ProductId = id;
                 DeleteProductCommandValidator validator = new DeleteProductCommandValidator();
                 validator.ValidateAndThrow(command);
                 command.Handle();
-            }
-            catch(Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+           
             
             return Ok();
         }
