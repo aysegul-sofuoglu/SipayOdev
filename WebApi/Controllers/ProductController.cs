@@ -1,4 +1,6 @@
 using AutoMapper;
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.DBOperations;
 using WebApi.ProductOperations.CreateProduct;
@@ -45,6 +47,9 @@ namespace WebApi.Controllers{
             {
                 GetProductDetailQuery query = new GetProductDetailQuery(_context, _mapper);
                 query.ProductId = id;
+                GetProductDetailQueryValidator validator = new GetProductDetailQueryValidator();
+                validator.ValidateAndThrow(query);
+
                 result = query.Handle();
             }
             catch(Exception ex)
@@ -70,7 +75,18 @@ namespace WebApi.Controllers{
             try
             {
                 command.Model = newProduct;
+                CreateProductCommandValidator validator = new CreateProductCommandValidator();
+                validator.ValidateAndThrow(command);
                 command.Handle();
+
+                // if(!result.IsValid)
+                // foreach(var item in result.Errors)
+                //     Console.WriteLine("Property " + item.PropertyName + " - Error Message: " + item.ErrorMessage);
+                
+                // else
+                //         command.Handle();
+                
+                
             }
             catch(Exception ex)
             {
@@ -87,6 +103,10 @@ namespace WebApi.Controllers{
                 UpdateProductCommand command = new UpdateProductCommand(_context);
                 command.ProductId = id;
                 command.Model = updatedProduct;
+
+                UpdateProductCommandValidator validator = new UpdateProductCommandValidator();
+                validator.ValidateAndThrow(command);
+
                 command.Handle();
             }
             catch(Exception ex)
@@ -106,6 +126,8 @@ namespace WebApi.Controllers{
             {
                 DeleteProductCommand command = new DeleteProductCommand(_context);
                 command.ProductId = id;
+                DeleteProductCommandValidator validator = new DeleteProductCommandValidator();
+                validator.ValidateAndThrow(command);
                 command.Handle();
             }
             catch(Exception ex)
