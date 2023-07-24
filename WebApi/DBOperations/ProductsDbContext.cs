@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using WebApi.Entities;
 
 namespace WebApi.DBOperations
 {
@@ -7,5 +8,6 @@ namespace WebApi.DBOperations
         public ProductsDbContext(DbContextOptions<ProductsDbContext>options) : base(options)
         { }
         public DbSet<Product> Products{ get; set; }
+        public DbSet<User> Users{ get; set; }
     }
 }

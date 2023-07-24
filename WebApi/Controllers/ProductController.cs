@@ -1,6 +1,6 @@
 using AutoMapper;
 using FluentValidation;
-using FluentValidation.Results;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.DBOperations;
 using WebApi.ProductOperations.CreateProduct;
@@ -14,6 +14,7 @@ using static WebApi.ProductOperations.UpdateProduct.UpdateProductCommand;
 
 namespace WebApi.Controllers{
 
+    //[Authorize]
     [ApiController]
     [Route("[controller]s")]
 
